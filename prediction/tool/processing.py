@@ -5,6 +5,8 @@ from sklearn import preprocessing
 
 def split_into_chunks(data, train, predict, step, binary=True, scale=True):
     X, Y = [], []
+    from sklearn.preprocessing import MinMaxScaler
+    sc = MinMaxScaler()
     for i in range(0, len(data), step):
         try:
             x_i = data[i:i + train]
@@ -21,7 +23,9 @@ def split_into_chunks(data, train, predict, step, binary=True, scale=True):
 
             else:
                 timeseries = np.array(data[i:i + train + predict])
-                if scale: timeseries = preprocessing.scale(timeseries)
+                if scale:
+                    timeseries = preprocessing.minmax_scale(timeseries, feature_range=(0, 80))
+                    #timeseries = sc.fit_transform(timeseries)
                 x_i = timeseries[:-1]
                 y_i = timeseries[-1]
 
