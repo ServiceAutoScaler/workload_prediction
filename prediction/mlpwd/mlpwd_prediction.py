@@ -19,38 +19,31 @@ from tool.processing import *
 def mlp_model():
     # create model
     model = Sequential()
-    model.add(Dense(8, input_dim=9, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(2, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(10, input_dim=9, kernel_initializer='normal', activation='sigmoid'))
+    model.add(Dense(5, kernel_initializer='normal', activation='sigmoid'))
     model.add(Dense(1, kernel_initializer='normal',activation='sigmoid'))
     epochs = 50
     learning_rate = 0.3
     decay_rate = learning_rate / epochs
     momentum = 0.2
-    sgd = SGD(lr=learning_rate, momentum=momentum, decay=0.0, nesterov=False)
+    sgd = SGD(lr=learning_rate, momentum=momentum, decay=decay_rate, nesterov=False)
     # Compile model
     model.compile(loss='mean_squared_error', optimizer='sgd')
     return model
 
 
 # Importing dataset
-train = pd.read_csv('/Users/tshang/mywork/mypy/train_1.csv').fillna(0)
-page = train['Page']
+train = pd.read_csv('/Users/tshang/mywork/mypy/table.csv')
+timeseries = train['Close'].iloc[1800:4800].iloc[::10].iloc[::-1].values
 
-# print(train.head(1))
-# Dropping Page Column
-train = train.drop('Page', axis=1)
 
-# print(page.count)
 
-# Using Data From Random Row for Training and Testing
-timeseries = train.iloc[89508, :].values
-
-#plt.plot(timeseries)
-#plt.show(block=True)
+# plt.plot(timeseries)
+# plt.show(block=True)
 X_WINDOW_SIZE = 9
 Y_WINDOW_SIZE = 1
 LAG_SIZE = 1
-X, Y = split_into_chunks(timeseries, X_WINDOW_SIZE, Y_WINDOW_SIZE, LAG_SIZE, binary=False, scale=False)
+X, Y = split_into_chunks(timeseries, X_WINDOW_SIZE, Y_WINDOW_SIZE, LAG_SIZE, binary=False, scale=True)
 X, Y = np.array(X), np.array(Y)
 
 # Splitting the dataset into the Training set and Test set
@@ -64,7 +57,7 @@ numpy.random.seed(seed)
 #estimator = KerasRegressor(build_fn=mlp_model, nb_epoch=100, batch_size=5, verbose=0)
 estimators = []
 #estimators.append(('minmax', MinMaxScaler()))
-estimators.append(('standardize', StandardScaler()))
+#estimators.append(('standardize', MinMaxScaler()))
 estimators.append(('mlp', KerasRegressor(build_fn=mlp_model, epochs=50, batch_size=5, verbose=0)))
 pipeline = Pipeline(estimators)
 
